@@ -45,15 +45,21 @@ public final class CseBenchmark {
             return def;
         }
     }
-    
-    // TODO: Is there a  non-sucky way to make these properties with defaults?
+
+    private static boolean getBoolProp(String name, boolean def) {
+        String val = System.getProperty("com.joyent.manta.benchmark.CseBenchmark." + name);
+        if (val != null) {
+            return Boolean.valueOf(val);
+        } else {
+            return def;
+        }
+    }
+
     private static final int NUM_THREADS = getIntProp("NUM_THREADS", 1);
     private static final int OBJECT_UPLOADS_PER_THEAD = getIntProp("OBJECT_UPLOADS_PER_THEAD", 1);
     private static final int PARTS_PER_OBJECT = getIntProp("PARTS_PER_OBJECT", 2);
     private static final int PART_SIZE_BYTES = getIntProp("PART_SIZE_BYTES", 5242880);
-    // TODO
-    private static final boolean USE_MPU = true;
-
+    private static final boolean USE_MPU = getBoolProp("USE_MPU", true);
 
     private final UUID testRunId = UUID.randomUUID();
     private MantaClient client;
@@ -78,7 +84,7 @@ public final class CseBenchmark {
         client = new MantaClient(config);
         testDirectory = String.format("%s/stor/java-manta-benchmark/CseBenchmark/%s",
                                       config.getMantaHomeDirectory(), testRunId);
-        
+
     }
 
     public void execute() throws Exception {
@@ -86,7 +92,11 @@ public final class CseBenchmark {
         LOG.info("dir {} created", testDirectory);
         Thread[] threads = new Thread[NUM_THREADS];
         for (int i = 0; i < NUM_THREADS; i++) {
-            threads[i] = new BenchThread(i);
+            if (USE_MPU) {
+                threads[i] = new MPUBenchThread(i);
+            } else {
+                threads[i] = new FileBenchThread(i);
+            }
         }
         for (int i = 0; i < NUM_THREADS; i++) {
             threads[i].start();
@@ -97,17 +107,11 @@ public final class CseBenchmark {
         }
     }
 
-    private class BenchThread extends Thread {
-        private int completedUploads = 0;
-        private int threadId;
-        private ThreadLocalRandom random;
-        private EncryptedServerSideMultipartManager multipartManager;
 
-        public BenchThread(int threadId) {
-            this.threadId = threadId;
-            random = ThreadLocalRandom.current();
-            multipartManager = new EncryptedServerSideMultipartManager(client);
-        }
+    private abstract class BenchThread extends Thread {
+        protected int completedUploads = 0;
+        protected int threadId;
+        protected ThreadLocalRandom random;
 
         @Override
         public void run() {
@@ -121,11 +125,30 @@ public final class CseBenchmark {
             }
         }
 
-        private void uploadObject() throws Exception {
+        protected byte[] nextBytes(int count) {
+            final byte[] result = new byte[count];
+            random.nextBytes(result);
+            return result;
+        }
+
+        abstract void uploadObject() throws Exception;
+    }
+
+    private class MPUBenchThread extends BenchThread {
+        private EncryptedServerSideMultipartManager multipartManager;
+
+        public MPUBenchThread(int threadId) {
+            this.threadId = threadId;
+            random = ThreadLocalRandom.current();
+            multipartManager = new EncryptedServerSideMultipartManager(client);
+        }
+
+        void uploadObject() throws Exception {
             long startTime = System.currentTimeMillis();
             List<MantaMultipartUploadPart> parts = new ArrayList<>();
+            // TODO: Mimic creation of extra dirs
             String objectPath = testDirectory + String.format("/%d-%d", threadId, completedUploads);
-            
+
             EncryptedMultipartUpload<ServerSideMultipartUpload> upload = multipartManager.initiateUpload(objectPath);
             for (int i=1; i <= PARTS_PER_OBJECT; i++) {
                 MantaMultipartUploadPart part = multipartManager.uploadPart(upload, i, nextBytes(PART_SIZE_BYTES));
@@ -134,15 +157,26 @@ public final class CseBenchmark {
             multipartManager.complete(upload, parts);
             long endTime = System.currentTimeMillis();
             // TODO: csv
-            LOG.info("upload complete {} {} {}", threadId, completedUploads, endTime-startTime); 
+            LOG.info("upload complete {} {} {}", threadId, completedUploads, endTime-startTime);
+        }
+    }
+
+    private class FileBenchThread extends BenchThread {
+
+        public FileBenchThread(int threadId) {
+            this.threadId = threadId;
+            random = ThreadLocalRandom.current();
         }
 
-        private byte[] nextBytes(int count) {
-            final byte[] result = new byte[count];
-            random.nextBytes(result);
-            return result;
-        }
+        void uploadObject() throws Exception {
+            long startTime = System.currentTimeMillis();
+            String objectPath = testDirectory + String.format("/%d-%d", threadId, completedUploads);
 
+            client.put(objectPath, nextBytes(PART_SIZE_BYTES));
+            long endTime = System.currentTimeMillis();
+            // TODO: csv
+            LOG.info("upload complete {} {} {}", threadId, completedUploads, endTime-startTime);
+        }
     }
 
 
@@ -150,7 +184,7 @@ public final class CseBenchmark {
         CseBenchmark benchmark = new CseBenchmark();
         benchmark.execute();
     }
-        
+
 
 
 }
