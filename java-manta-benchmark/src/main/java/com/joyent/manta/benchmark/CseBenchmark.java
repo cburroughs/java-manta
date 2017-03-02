@@ -8,21 +8,22 @@
 package com.joyent.manta.benchmark;
 
 import com.joyent.manta.client.MantaClient;
+import com.joyent.manta.client.crypto.SecretKeyUtils;
+import com.joyent.manta.client.crypto.SupportedCipherDetails;
+import com.joyent.manta.client.crypto.SupportedCiphersLookupMap;
+import com.joyent.manta.client.multipart.EncryptedMultipartUpload;
 import com.joyent.manta.client.multipart.EncryptedServerSideMultipartManager;
 import com.joyent.manta.client.multipart.MantaMultipartUploadPart;
 import com.joyent.manta.client.multipart.ServerSideMultipartUpload;
-import com.joyent.manta.client.multipart.EncryptedMultipartUpload;
-import com.joyent.manta.config.ConfigContext;
-import com.joyent.manta.config.SettableConfigContext;
 import com.joyent.manta.config.ChainedConfigContext;
+import com.joyent.manta.config.ConfigContext;
 import com.joyent.manta.config.DefaultsConfigContext;
-import com.joyent.manta.client.crypto.SupportedCiphersLookupMap;
+import com.joyent.manta.config.EnvVarConfigContext;
 import com.joyent.manta.config.MapConfigContext;
+import com.joyent.manta.config.SettableConfigContext;
 import com.joyent.manta.config.SystemSettingsConfigContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.joyent.manta.client.crypto.SupportedCipherDetails;
-import com.joyent.manta.client.crypto.SecretKeyUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -60,14 +61,17 @@ public final class CseBenchmark {
 
     public CseBenchmark() {
         SettableConfigContext config = new ChainedConfigContext(new DefaultsConfigContext(),
-                                                        new SystemSettingsConfigContext(),
-                                                        new MapConfigContext(System.getProperties()));
+                                                                new EnvVarConfigContext (),
+                                                                new SystemSettingsConfigContext(),
+                                                                new MapConfigContext(System.getProperties()));
         config.setClientEncryptionEnabled(true);
         config.setEncryptionKeyId("ephemeral-benchmark-key");
         SupportedCipherDetails cipherDetails = SupportedCiphersLookupMap.INSTANCE.get("AES256/CTR/NoPadding");
         config.setEncryptionAlgorithm(cipherDetails.getCipherId());
         SecretKey key = SecretKeyUtils.generate(cipherDetails);
         config.setEncryptionPrivateKeyBytes(key.getEncoded());
+        // TODO: What is keeping this from being set by env var?
+        config.setMaximumConnections(256);
         System.out.printf("Unique secret key used for test (base64):\n%s\n",
                           Base64.getEncoder().encodeToString(key.getEncoded()));
 
