@@ -60,6 +60,9 @@ public final class CseBenchmark {
     private static final int PARTS_PER_OBJECT = getIntProp("PARTS_PER_OBJECT", 2);
     private static final int PART_SIZE_BYTES = getIntProp("PART_SIZE_BYTES", 5242880);
     private static final boolean USE_MPU = getBoolProp("USE_MPU", true);
+    private static final String DIR_PREFIX_TYPE = System.getProperty("com.joyent.manta.benchmark.CseBenchmark.DIR_PREFIX_TYPE",
+                                                                     "thread");
+
 
     private final UUID testRunId = UUID.randomUUID();
     private MantaClient client;
@@ -112,11 +115,15 @@ public final class CseBenchmark {
         protected int completedUploads = 0;
         protected int threadId;
         protected ThreadLocalRandom random;
+        protected String _prefixCache = null;
 
         @Override
         public void run() {
             while (completedUploads < OBJECT_UPLOADS_PER_THEAD) {
                 try {
+                    if (DIR_PREFIX_TYPE.equals("thread")) {
+                        preparePrefixDirs();
+                    }
                     uploadObject();
                 } catch (Exception e) {
                     LOG.error("uh oh", e);
@@ -125,10 +132,28 @@ public final class CseBenchmark {
             }
         }
 
-        // TODO: prop for this
+
+        protected String random4Dir() {
+            if (_prefixCache != null) {
+                return _prefixCache;
+            }
+            _prefixCache = String.format("/%d/%d/%d/%d",
+                                         random.nextInt(256), random.nextInt(256),
+                                         random.nextInt(256), random.nextInt(256));
+            return _prefixCache;
+        }
+
         protected List<String> prefixDirs() {
             List<String> dirs = new ArrayList<>();
-            dirs.add(testDirectory + String.format("/%d", threadId));
+            if (DIR_PREFIX_TYPE.equals("thread")) {
+                dirs.add(testDirectory + String.format("/%d", threadId));
+            } else if (DIR_PREFIX_TYPE.equals("random4")) {
+                String[] parts = random4Dir().split("/");
+                dirs.add(testDirectory + "/" + parts[0]);
+                for (int i=1; i < parts.length ; i++) {
+                    dirs.add(dirs.get(dirs.size() - 1) + "/" + parts[i]);
+                }
+            }
             return dirs;
         }
 
@@ -144,8 +169,14 @@ public final class CseBenchmark {
         }
 
         protected String getObjecPath() {
+            String prefixDirPath = null;
+            if (DIR_PREFIX_TYPE.equals("thread")) {
+                prefixDirPath = String.format("/%d", threadId);
+            } else if (DIR_PREFIX_TYPE.equals("random4")) {
+                prefixDirPath = random4Dir();
+            }
             String objectPath = (testDirectory +
-                                 String.format("/%d", threadId) +
+                                 prefixDirPath +
                                  String.format("/%d-%d", threadId, completedUploads));
             return objectPath;
         }
@@ -171,7 +202,9 @@ public final class CseBenchmark {
         void uploadObject() throws Exception {
             long startTime = System.currentTimeMillis();
             List<MantaMultipartUploadPart> parts = new ArrayList<>();
-            preparePrefixDirs();
+            if (DIR_PREFIX_TYPE.equals("random4")) {
+                preparePrefixDirs();
+            }
 
             EncryptedMultipartUpload<ServerSideMultipartUpload> upload = multipartManager.initiateUpload(getObjecPath());
             for (int i=1; i <= PARTS_PER_OBJECT; i++) {
@@ -182,6 +215,7 @@ public final class CseBenchmark {
             long endTime = System.currentTimeMillis();
             // TODO: csv
             LOG.info("upload complete {} {} {}", threadId, completedUploads, endTime-startTime);
+            _prefixCache = null;
         }
     }
 
@@ -194,12 +228,15 @@ public final class CseBenchmark {
 
         void uploadObject() throws Exception {
             long startTime = System.currentTimeMillis();
-            preparePrefixDirs();
+            if (DIR_PREFIX_TYPE.equals("random4")) {
+                preparePrefixDirs();
+            }
 
             client.put(getObjecPath(), nextBytes(PART_SIZE_BYTES));
             long endTime = System.currentTimeMillis();
             // TODO: csv
             LOG.info("upload complete {} {} {}", threadId, completedUploads, endTime-startTime);
+            _prefixCache = null;
         }
     }
 
