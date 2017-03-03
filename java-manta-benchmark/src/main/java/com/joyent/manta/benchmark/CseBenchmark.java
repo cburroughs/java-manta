@@ -125,6 +125,31 @@ public final class CseBenchmark {
             }
         }
 
+        // TODO: prop for this
+        protected List<String> prefixDirs() {
+            List<String> dirs = new ArrayList<>();
+            dirs.add(testDirectory + String.format("/%d", threadId));
+            return dirs;
+        }
+
+        protected void preparePrefixDirs() throws Exception {
+            List<String> dirs = prefixDirs();
+            if (dirs == null) {
+                return;
+            }
+            for (String dir : dirs) {
+                client.putDirectory(dir);
+            }
+
+        }
+
+        protected String getObjecPath() {
+            String objectPath = (testDirectory +
+                                 String.format("/%d", threadId) +
+                                 String.format("/%d-%d", threadId, completedUploads));
+            return objectPath;
+        }
+
         protected byte[] nextBytes(int count) {
             final byte[] result = new byte[count];
             random.nextBytes(result);
@@ -146,10 +171,9 @@ public final class CseBenchmark {
         void uploadObject() throws Exception {
             long startTime = System.currentTimeMillis();
             List<MantaMultipartUploadPart> parts = new ArrayList<>();
-            // TODO: Mimic creation of extra dirs
-            String objectPath = testDirectory + String.format("/%d-%d", threadId, completedUploads);
+            preparePrefixDirs();
 
-            EncryptedMultipartUpload<ServerSideMultipartUpload> upload = multipartManager.initiateUpload(objectPath);
+            EncryptedMultipartUpload<ServerSideMultipartUpload> upload = multipartManager.initiateUpload(getObjecPath());
             for (int i=1; i <= PARTS_PER_OBJECT; i++) {
                 MantaMultipartUploadPart part = multipartManager.uploadPart(upload, i, nextBytes(PART_SIZE_BYTES));
                 parts.add(part);
@@ -170,9 +194,9 @@ public final class CseBenchmark {
 
         void uploadObject() throws Exception {
             long startTime = System.currentTimeMillis();
-            String objectPath = testDirectory + String.format("/%d-%d", threadId, completedUploads);
+            preparePrefixDirs();
 
-            client.put(objectPath, nextBytes(PART_SIZE_BYTES));
+            client.put(getObjecPath(), nextBytes(PART_SIZE_BYTES));
             long endTime = System.currentTimeMillis();
             // TODO: csv
             LOG.info("upload complete {} {} {}", threadId, completedUploads, endTime-startTime);
