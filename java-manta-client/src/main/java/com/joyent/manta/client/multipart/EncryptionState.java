@@ -148,6 +148,7 @@ public class EncryptionState {
             }
             remainderStream.write(hmacBytes);
         }
+        lastPartAuthWritten = true;
         return remainderStream;
     }
 

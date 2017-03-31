@@ -129,6 +129,11 @@ public class EncryptedMultipartManager
     }
 
     @Override
+    public int getMinimumPartSize() {
+        return this.wrapped.getMinimumPartSize();
+    }
+
+    @Override
     public EncryptedMultipartUpload<WRAPPED_UPLOAD> initiateUpload(final String path)
             throws IOException {
         return initiateUpload(path, new MantaMetadata());
@@ -254,7 +259,18 @@ public class EncryptedMultipartManager
 
             final EncryptingPartEntity entity = new EncryptingPartEntity(
                     encryptionState.getCipherStream(),
-                    encryptionState.getMultipartStream(), sourceEntity);
+                    encryptionState.getMultipartStream(), sourceEntity,
+                    new EncryptingPartEntity.LastPartCallback() {
+                        @Override
+                        public ByteArrayOutputStream call(long uploadedBytes) throws IOException {
+                            if (uploadedBytes < wrapped.getMinimumPartSize()) {
+                                LOGGER.debug("Detected part {} as last part based on size", partNumber);
+                                return encryptionState.remainderAndLastPartAuth();
+                            } else {
+                                return new ByteArrayOutputStream();
+                            }
+                        }
+                    });
             encryptionState.setLastPartNumber(partNumber);
             return wrapped.uploadPart(upload.getWrapped(), partNumber, entity);
         } finally {

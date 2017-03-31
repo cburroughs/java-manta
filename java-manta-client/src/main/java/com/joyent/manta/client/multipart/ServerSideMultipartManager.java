@@ -78,7 +78,7 @@ public class ServerSideMultipartManager extends AbstractMultipartManager
     /**
      * Minimum size of a part in bytes.
      */
-    public static final int MIN_PART_SIZE = 5_242_880; // 5 mebibytes
+    private static final int MIN_PART_SIZE = 5_242_880; // 5 mebibytes
 
     /**
      * Configuration context used to get home directory.
@@ -168,6 +168,12 @@ public class ServerSideMultipartManager extends AbstractMultipartManager
     public int getMaxParts() {
         return MAX_PARTS;
     }
+
+    @Override
+    public int getMinimumPartSize() {
+        return MIN_PART_SIZE;
+    }
+
 
     @Override
     public Stream<MantaMultipartUpload> listInProgress() throws IOException {
