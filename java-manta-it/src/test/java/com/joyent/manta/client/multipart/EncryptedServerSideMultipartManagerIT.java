@@ -289,6 +289,40 @@ public class EncryptedServerSideMultipartManagerIT {
         }
     }
 
+    public final void canUploadWithByteArrayAndMultipleFullParts() throws IOException {
+        final String name = UUID.randomUUID().toString();
+        final String path = testPathPrefix + name;
+        final byte[] content = RandomUtils.nextBytes(FIVE_MB *3);
+        final byte[] content1 = Arrays.copyOfRange(content, 0, FIVE_MB + 1);
+        final byte[] content2 = Arrays.copyOfRange(content, FIVE_MB + 1, FIVE_MB * 2 + 1);
+        final byte[] content3 = Arrays.copyOfRange(content, FIVE_MB * 2 + 1, content.length);
+
+        String contentType = "application/something-never-seen-before; charset=UTF-8";
+        MantaHttpHeaders headers = new MantaHttpHeaders();
+        headers.setContentType(contentType);
+
+        EncryptedMultipartUpload<ServerSideMultipartUpload> upload = multipart.initiateUpload(path, null, headers);
+        MantaMultipartUploadPart part1 = multipart.uploadPart(upload, 1, content1);
+        MantaMultipartUploadPart part2 = multipart.uploadPart(upload, 2, content2);
+        MantaMultipartUploadPart part3 = multipart.uploadPart(upload, 3, content3);
+
+        MantaMultipartUploadTuple[] parts = new MantaMultipartUploadTuple[] { part1, part2, part3 };
+        Stream<MantaMultipartUploadTuple> partsStream = Arrays.stream(parts);
+        multipart.complete(upload, partsStream);
+
+        try (MantaObjectInputStream in = mantaClient.getAsInputStream(path);
+             ByteArrayOutputStream out = new ByteArrayOutputStream()) {
+            IOUtils.copy(in, out);
+
+            AssertJUnit.assertArrayEquals("Uploaded multipart data doesn't equal actual object data",
+                    content, out.toByteArray());
+
+            Assert.assertEquals(in.getContentType(), contentType,
+                    "Set content-type doesn't match actual content type");
+        }
+    }
+
+
     public final void canUploadWithSinglePartAndPerformRangeRequest() throws IOException {
         final String name = UUID.randomUUID().toString();
         final String path = testPathPrefix + name;
