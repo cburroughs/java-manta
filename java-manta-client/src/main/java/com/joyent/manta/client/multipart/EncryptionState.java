@@ -122,8 +122,12 @@ public class EncryptionState {
     }
 
     ByteArrayOutputStream remainderAndLastPartAuth() throws IOException {
+        // TODO: Make sure I own the lock?
+        if (!getLock().isLocked()) {
+            throw new IllegalStateException("remainderAndLastPartAuth called without lock owned");
+        }
         if (isLastPartAuthWritten()) {
-            throw new IllegalStateException("final auth already written");
+            throw new IllegalStateException("final CSE auth already written");
         }
         ByteArrayOutputStream remainderStream = new ByteArrayOutputStream();
         getMultipartStream().setNext(remainderStream);
