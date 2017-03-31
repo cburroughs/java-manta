@@ -282,33 +282,13 @@ public class EncryptedMultipartManager
         encryptionState.getLock().lock();
         try {
             Stream<? extends MantaMultipartUploadTuple> finalPartsStream = partsStream;
-            ByteArrayOutputStream remainderStream = new ByteArrayOutputStream();
-            encryptionState.getMultipartStream().setNext(remainderStream);
-            encryptionState.getCipherStream().close();
-            remainderStream.write(encryptionState.getMultipartStream().getRemainder());
-
-            // conditionally get hmac and upload part; yeah reenterant lock
-            if (encryptionState.getCipherStream().getClass().equals(HmacOutputStream.class)) {
-                HMac hmac = ((HmacOutputStream) encryptionState.getCipherStream()).getHmac();
-                byte[] hmacBytes = new byte[hmac.getMacSize()];
-                hmac.doFinal(hmacBytes, 0);
-
-                final int hmacSize = encryptionContext.getCipherDetails()
-                        .getAuthenticationTagOrHmacLengthInBytes();
-
-                Validate.isTrue(hmacBytes.length == hmacSize,
-                        "HMAC actual bytes doesn't equal the number of bytes expected");
-
-                if (LOGGER.isDebugEnabled()) {
-                    LOGGER.debug("HMAC: {}", Hex.encodeHexString(hmacBytes));
+            if (!encryptionState.isLastPartAuthWritten()) {
+                ByteArrayOutputStream remainderStream = encryptionState.remainderAndLastPartAuth();
+                if (remainderStream.size() > 0) {
+                    MantaMultipartUploadPart finalPart = wrapped.uploadPart(upload.getWrapped(),
+                                                                            encryptionState.getLastPartNumber() + 1, remainderStream.toByteArray());
+                    finalPartsStream = Stream.concat(partsStream, Stream.of(finalPart));
                 }
-                remainderStream.write(hmacBytes);
-            }
-
-            if (remainderStream.size() > 0) {
-                MantaMultipartUploadPart finalPart = wrapped.uploadPart(upload.getWrapped(),
-                        encryptionState.getLastPartNumber() + 1, remainderStream.toByteArray());
-                finalPartsStream = Stream.concat(partsStream, Stream.of(finalPart));
             }
 
             wrapped.complete(upload.getWrapped(), finalPartsStream);
