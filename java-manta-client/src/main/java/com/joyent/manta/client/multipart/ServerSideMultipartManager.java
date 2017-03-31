@@ -633,7 +633,8 @@ public class ServerSideMultipartManager extends AbstractMultipartManager
      * @param parts stream of tuples - this is a terminal operation that will close the stream
      * @return byte array containing JSON data
      */
-    static ImmutablePair<byte[],Integer> createCommitRequestBody(final Stream<? extends MantaMultipartUploadTuple> parts) {
+    static ImmutablePair<byte[], Integer>
+        createCommitRequestBody(final Stream<? extends MantaMultipartUploadTuple> parts) {
         final JsonNodeFactory nodeFactory = MantaObjectMapper.NODE_FACTORY_INSTANCE;
         final ObjectNode objectNode = new ObjectNode(nodeFactory);
 

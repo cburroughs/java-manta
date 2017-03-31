@@ -33,7 +33,7 @@ public class EncryptionState {
     /**
      * Logger instance.
      */
-    private transient static final Logger LOGGER = LoggerFactory.getLogger(EncryptionState.class);
+    private static final transient Logger LOGGER = LoggerFactory.getLogger(EncryptionState.class);
 
     /**
      * Encryption cipher state object.

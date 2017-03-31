@@ -17,12 +17,9 @@ import com.joyent.manta.client.crypto.SupportedCipherDetails;
 import com.joyent.manta.exception.MantaMultipartException;
 import com.joyent.manta.http.EncryptionHttpHelper;
 import com.joyent.manta.http.MantaHttpHeaders;
-import com.joyent.manta.util.HmacOutputStream;
-import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.Validate;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpHeaders;
-import org.bouncycastle.crypto.macs.HMac;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -262,7 +259,7 @@ public class EncryptedMultipartManager
                     encryptionState.getMultipartStream(), sourceEntity,
                     new EncryptingPartEntity.LastPartCallback() {
                         @Override
-                        public ByteArrayOutputStream call(long uploadedBytes) throws IOException {
+                        public ByteArrayOutputStream call(final long uploadedBytes) throws IOException {
                             if (uploadedBytes < wrapped.getMinimumPartSize()) {
                                 LOGGER.debug("Detected part {} as last part based on size", partNumber);
                                 return encryptionState.remainderAndLastPartAuth();
@@ -302,7 +299,8 @@ public class EncryptedMultipartManager
                 ByteArrayOutputStream remainderStream = encryptionState.remainderAndLastPartAuth();
                 if (remainderStream.size() > 0) {
                     MantaMultipartUploadPart finalPart = wrapped.uploadPart(upload.getWrapped(),
-                                                                            encryptionState.getLastPartNumber() + 1, remainderStream.toByteArray());
+                                                                            encryptionState.getLastPartNumber() + 1,
+                                                                            remainderStream.toByteArray());
                     finalPartsStream = Stream.concat(partsStream, Stream.of(finalPart));
                 }
             }
