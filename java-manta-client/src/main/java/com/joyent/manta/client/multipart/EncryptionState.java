@@ -8,6 +8,7 @@
 package com.joyent.manta.client.multipart;
 
 import com.joyent.manta.client.crypto.EncryptionContext;
+import com.joyent.manta.exception.MantaMultipartException;
 import com.joyent.manta.util.HmacOutputStream;
 import org.apache.commons.codec.binary.Hex;
 import org.apache.commons.lang3.Validate;
@@ -126,7 +127,8 @@ public class EncryptionState {
             throw new IllegalStateException("remainderAndLastPartAuth called without lock owned");
         }
         if (isLastPartAuthWritten()) {
-            throw new IllegalStateException("final CSE auth already written");
+            final String msg = "final CSE auth already written (complete called multiple times or parts below min size)";
+            throw new MantaMultipartException(new IllegalStateException(msg));
         }
         ByteArrayOutputStream remainderStream = new ByteArrayOutputStream();
         getMultipartStream().setNext(remainderStream);

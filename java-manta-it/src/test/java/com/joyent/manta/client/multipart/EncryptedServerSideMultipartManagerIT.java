@@ -417,37 +417,25 @@ public class EncryptedServerSideMultipartManagerIT {
         final ArrayList<MantaMultipartUploadTuple> uploadedParts =
                 new ArrayList<>();
 
-        for (int i = 0; i < parts.length; i++) {
-            String part = parts[i];
-            int partNumber = i + 1;
-            MantaMultipartUploadTuple uploaded = multipart.uploadPart(
-                    upload, partNumber, part);
-
-            uploadedParts.add(uploaded);
+        Throwable cause = null;
+        //0
+        MantaMultipartUploadTuple uploaded0 = multipart.uploadPart(upload, 0, parts[0]);
+        uploadedParts.add(uploaded0);
+        //1-3
+        for (int i = 1; i < parts.length; i++) {
+            cause = Assert.expectThrows(MantaMultipartException.class,
+                                        () -> {
+                                            MantaMultipartUploadTuple uploaded = multipart.uploadPart(upload, 1, parts[1]);
+                                            uploadedParts.add(uploaded);
+                                        });
+            assert cause instanceof IllegalStateException;
         }
-
         multipart.validateThatThereAreSequentialPartNumbers(upload);
 
-        boolean caught = false;
-        try {
-            multipart.complete(upload, uploadedParts);
-        } catch (MantaMultipartException e) {
-            Throwable cause = e.getCause();
-
-            if (cause instanceof MantaClientHttpResponseException) {
-                MantaClientHttpResponseException responseException =
-                        (MantaClientHttpResponseException)cause;
-
-                Assert.assertEquals(responseException.getStatusCode(),
-                        400,
-                        "Unexpected response code");
-                Assert.assertEquals(responseException.getServerCode(),
-                        MantaErrorCode.MULTIPART_UPLOAD_PART_SIZE,
-                        "Unexpected error code");
-                caught = true;
-            }
-        }
-
-        Assert.assertTrue(caught, "Expected exception was not caught");
+        cause = Assert.expectThrows(MantaMultipartException.class,
+                                    () -> {
+                                        multipart.complete(upload, uploadedParts);
+                                    });
+        assert cause instanceof IllegalStateException;
     }
 }
