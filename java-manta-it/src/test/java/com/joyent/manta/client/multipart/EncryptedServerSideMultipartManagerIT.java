@@ -417,25 +417,41 @@ public class EncryptedServerSideMultipartManagerIT {
         final ArrayList<MantaMultipartUploadTuple> uploadedParts =
                 new ArrayList<>();
 
-        Throwable cause = null;
+        Throwable exception = null;
         //0
-        MantaMultipartUploadTuple uploaded0 = multipart.uploadPart(upload, 0, parts[0]);
+        MantaMultipartUploadTuple uploaded0 = multipart.uploadPart(upload, 1, parts[0]);
         uploadedParts.add(uploaded0);
         //1-3
         for (int i = 1; i < parts.length; i++) {
-            cause = Assert.expectThrows(MantaMultipartException.class,
+            final int j = i;
+            exception = Assert.expectThrows(MantaMultipartException.class,
                                         () -> {
-                                            MantaMultipartUploadTuple uploaded = multipart.uploadPart(upload, 1, parts[1]);
+                                            MantaMultipartUploadTuple uploaded = multipart.uploadPart(upload, j + 1, parts[j]);
                                             uploadedParts.add(uploaded);
                                         });
-            assert cause instanceof IllegalStateException;
+            assert exception.getCause() instanceof IllegalStateException;
         }
         multipart.validateThatThereAreSequentialPartNumbers(upload);
 
-        cause = Assert.expectThrows(MantaMultipartException.class,
-                                    () -> {
-                                        multipart.complete(upload, uploadedParts);
-                                    });
-        assert cause instanceof IllegalStateException;
+        // This "completes" but only uploads one part due to the previous exceptions
+        multipart.complete(upload, uploadedParts);
     }
+
+    public final void doubleCompleteFails() throws IOException {
+        final String name = UUID.randomUUID().toString();
+        final String path = testPathPrefix + name;
+        final byte[] content = RandomUtils.nextBytes(524);
+
+        EncryptedMultipartUpload<ServerSideMultipartUpload> upload = multipart.initiateUpload(path);
+        MantaMultipartUploadPart part1 = multipart.uploadPart(upload, 1, content);
+
+        MantaMultipartUploadTuple[] parts = new MantaMultipartUploadTuple[] { part1 };
+        Stream<MantaMultipartUploadTuple> partsStream = Arrays.stream(parts);
+        multipart.complete(upload, partsStream);
+        Assert.assertThrows(IllegalStateException.class,
+                            () -> {
+                                multipart.complete(upload, partsStream);
+                            });
+    }
+
 }
