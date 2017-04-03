@@ -61,7 +61,6 @@ public class EncryptionStateSerializerTest {
             EncryptionContext actualEncryptionContext =
                     (EncryptionContext)ReflectionUtils.readField(ENCRYPTION_CONTEXT_FIELD, actual);
             actualEncryptionContext.setKey(secretKey);
-
             Assert.assertEquals(actual, encryptionState);
         }
     }
@@ -77,6 +76,8 @@ public class EncryptionStateSerializerTest {
                 "multipartStream");
         Field cipherStreamField = ReflectionUtils.getField(EncryptionState.class,
                 "cipherStream");
+        Field lastPartAuthWrittenField = ReflectionUtils.getField(EncryptionState.class,
+                "lastPartAuthWritten");
 
         try {
             FieldUtils.writeField(multipartStreamField, encryptionState, multipartStream);
@@ -85,6 +86,7 @@ public class EncryptionStateSerializerTest {
                     multipartStream, encryptionContext);
 
             FieldUtils.writeField(cipherStreamField, encryptionState, cipherStream);
+            FieldUtils.writeField(lastPartAuthWrittenField, encryptionState, true);
         } catch (ReflectiveOperationException e) {
             throw new AssertionError(e);
         }

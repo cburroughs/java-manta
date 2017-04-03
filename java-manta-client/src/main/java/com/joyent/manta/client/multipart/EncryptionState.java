@@ -167,7 +167,8 @@ public class EncryptionState {
         final EncryptionState that = (EncryptionState) o;
 
         return lastPartNumber == that.lastPartNumber
-                && Objects.equals(encryptionContext, that.encryptionContext);
+            && lastPartAuthWritten == that.lastPartAuthWritten
+            && Objects.equals(encryptionContext, that.encryptionContext);
     }
 
     @Override
