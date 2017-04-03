@@ -117,6 +117,15 @@ public class EncryptedMultipartManager
             throw new UnsupportedOperationException("Currently only AES/CTR "
                     + "cipher/modes are supported for encrypted multipart uploads");
         }
+
+        /* When combining CSE and MPU, an additional buffering layer
+         * is added via MultipartOutputStream.  If the minimum part
+         * size did not align with the cipher block size, a user could
+         * upload what they thought was a large enough part, but be
+         * presented with an error when the client actually uploaded a
+         * few bytes left due to the buffer.
+         */
+        assert getMinimumPartSize() == 1 ||  getMinimumPartSize() % cipherDetails.getBlockSizeInBytes() == 0;
     }
 
     @Override
