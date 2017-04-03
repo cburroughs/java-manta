@@ -569,7 +569,7 @@ public class ServerSideMultipartManager extends AbstractMultipartManager
         final int numParts;
 
         try {
-            ImmutablePair<byte[],Integer> pair = createCommitRequestBody(partsStream);
+            ImmutablePair<byte[], Integer> pair = createCommitRequestBody(partsStream);
             jsonRequest = pair.getLeft();
             numParts = pair.getRight();
         } catch (NullPointerException | IllegalArgumentException e) {

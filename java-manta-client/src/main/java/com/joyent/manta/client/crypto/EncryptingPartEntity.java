@@ -64,6 +64,9 @@ public class EncryptingPartEntity implements HttpEntity {
      */
     private final MultipartOutputStream multipartStream;
 
+    /**
+     * Callback function for for the "last" part.
+     */
     private final LastPartCallback lastPartCallback;
 
     /**
@@ -72,6 +75,7 @@ public class EncryptingPartEntity implements HttpEntity {
      * @param cipherStream encrypting stream
      * @param multipartStream multipart stream that allows to attaching / detaching streams
      * @param wrapped wrapped entity to encrypt and send
+     * @param lastPartCallback callback for the last part (nullable)
      */
     public EncryptingPartEntity(final OutputStream cipherStream,
                                 final MultipartOutputStream multipartStream,
@@ -151,8 +155,26 @@ public class EncryptingPartEntity implements HttpEntity {
         this.wrapped.consumeContent();
     }
 
+    /**
+     * "Callback" function object.
+     */
     public abstract static class LastPartCallback {
 
+        /**
+         * When a user has uploaded the last part some action will
+         * need to be taken, such as flushing a the buffer or writing
+         * an HMAC.  If the user uploads a part that is less than the
+         * minimum size then we can detect that it is the last part at
+         * that time and append the relevant bytes.  This callback
+         * allows a MultipartManager to check if the upload byte
+         * count, and then return whatever additional bytes need to be
+         * uploaded.
+         *
+         * @param uploadedBytes How many bytes have been uploaded for this part
+         * @return The remaining bytes to upload, or a zero length
+         * stream if there are none.
+         * @throws IOException If here was an error constructing the remainder stream.
+         */
         public abstract ByteArrayOutputStream call(long uploadedBytes) throws IOException;
     }
 }

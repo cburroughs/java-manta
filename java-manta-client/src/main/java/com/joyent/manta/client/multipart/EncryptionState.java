@@ -61,6 +61,10 @@ public class EncryptionState {
      */
     private transient OutputStream cipherStream = null;
 
+    /**
+     * Indicates if the multipart stream buffer has been flushed and
+     * final cipher auth bytes written.
+     */
     private boolean lastPartAuthWritten = false;
 
     /**
@@ -127,7 +131,8 @@ public class EncryptionState {
             throw new IllegalStateException("remainderAndLastPartAuth called without lock owned");
         }
         if (isLastPartAuthWritten()) {
-            final String msg = "final CSE auth already written (complete called multiple times or parts below min size)";
+            final String msg = "final CSE auth already written (complete called multiple times or "
+                + "parts below min size)";
             throw new MantaMultipartException(new IllegalStateException(msg));
         }
         ByteArrayOutputStream remainderStream = new ByteArrayOutputStream();
