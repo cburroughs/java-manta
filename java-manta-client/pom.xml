@@ -291,6 +291,30 @@
                     </suiteXmlFiles>
                 </configuration>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <executions>
+                    <execution>
+                        <id>integration-tests</id>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${maven.integration.test.skip}</skip>
+                            <suiteXmlFiles>
+                                <suiteXmlFile>src/test/resources/testng-it.xml</suiteXmlFile>
+                            </suiteXmlFiles>
+                            <!-- uncomment to enable proxies with integration tests -->
+                            <!--<systemPropertyVariables>-->
+                                <!--<https.proxyHost>localhost</https.proxyHost>-->
+                                <!--<https.proxyPort>8888</https.proxyPort>-->
+                            <!--</systemPropertyVariables>-->
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
             <!-- Library that creates a properties file containing version info -->
             <plugin>
                 <groupId>com.google.code.maven-replacer-plugin</groupId>

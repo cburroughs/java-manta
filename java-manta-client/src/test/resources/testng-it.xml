@@ -1,0 +1,8 @@
+<!DOCTYPE suite SYSTEM "http://testng.org/testng-1.0.dtd">
+<suite name="Java Manta Client Test Suite IT IN THE MODULE DEMO" verbose="1">
+    <test name="Demo">
+        <classes>
+            <class name="com.joyent.manta.DemoIT" />
+        </classes>
+    </test>
+</suite>
