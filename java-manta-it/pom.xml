@@ -115,6 +115,44 @@
     <build>
         <plugins>
             <plugin>
+                <!-- relocation work around for test coverage -->
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>3.0.1</version>
+                <executions>
+                    <execution>
+                        <id>unpack-relocated-classes</id>
+                        <phase>pre-integration-test</phase>
+                        <goals>
+                            <goal>unpack</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>com.joyent.manta</groupId>
+                                    <artifactId>java-manta-client</artifactId>
+                                    <type>jar</type>
+                                    <overWrite>true</overWrite>
+                                    <!-- no classes in module! -->
+                                    <outputDirectory>${project.build.directory}/classes</outputDirectory>
+                                    <includes>**/*.class</includes>
+                                    <excludes>com/joyent/manta/shade/**</excludes>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.joyent.manta</groupId>
+                                    <artifactId>java-manta-client-kryo-serialization</artifactId>
+                                    <type>jar</type>
+                                    <overWrite>false</overWrite>
+                                    <!-- no classes in module! -->
+                                    <outputDirectory>${project.build.directory}/classes</outputDirectory>
+                                    <includes>**/*.class</includes>
+                                </artifactItem>
+                            </artifactItems>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-failsafe-plugin</artifactId>
                 <executions>

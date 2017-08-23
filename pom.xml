@@ -134,7 +134,7 @@
         <maven-surefire-plugin.version>2.19.1</maven-surefire-plugin.version>
         <maven-failsafe-plugin.version>2.19.1</maven-failsafe-plugin.version>
         <maven-exec-plugin.version>1.4.0</maven-exec-plugin.version>
-        <maven-jacoco-plugin.version>0.7.8</maven-jacoco-plugin.version>
+        <maven-jacoco-plugin.version>0.7.9</maven-jacoco-plugin.version>
         <maven-project-info-reports-plugin.version>2.9</maven-project-info-reports-plugin.version>
 
         <!-- Maven plugin dependency versions -->
@@ -445,18 +445,49 @@
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>${maven-jacoco-plugin.version}</version>
                 <executions>
+                    <!-- unit test coverage-->
                     <execution>
+                        <id>pre-unit-test</id>
                         <goals>
                             <goal>prepare-agent</goal>
                         </goals>
                     </execution>
                     <execution>
-                        <id>report</id>
-                        <phase>prepare-package</phase>
+                        <id>unit-test-report</id>
+                        <phase>test</phase>
                         <goals>
                             <goal>report</goal>
                         </goals>
                     </execution>
+                    <!-- integration test coverage-->
+                    <execution>
+                        <id>pre-integration-test</id>
+                        <goals>
+                            <goal>prepare-agent-integration</goal>
+                        </goals>
+                        <configuration>
+                            <destFile>${project.build.directory}/jacoco-it.exec</destFile>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>integration-test-report</id>
+                        <phase>integration-test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                        <configuration>
+                            <dataFileIncludes>**/jacoco-it.exec</dataFileIncludes>
+                            <outputDirectory>${project.reporting.outputDirectory}/jacoco-it</outputDirectory>
+                        </configuration>
+                    </execution>
+                    <!-- <execution> -->
+                    <!--     <id>report</id> -->
+                    <!--     <phase>prepare-package</phase> -->
+                    <!--     <goals> -->
+                    <!--         <goal>test</goal> -->
+                    <!--         <goal>report</goal> -->
+                    <!--     </goals> -->
+                    <!-- </execution> -->
                 </executions>
             </plugin>
         </plugins>
