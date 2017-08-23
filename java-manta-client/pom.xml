@@ -234,31 +234,31 @@
                     <relocations>
                         <relocation>
                             <pattern>com.joyent.http</pattern>
-                            <shadedPattern>com.joyent.manta.http</shadedPattern>
+                            <shadedPattern>com.joyent.manta.shade.http</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>com.google</pattern>
-                            <shadedPattern>com.joyent.manta.com.google</shadedPattern>
+                            <shadedPattern>com.joyent.manta.shade.com.google</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>org.apache</pattern>
-                            <shadedPattern>com.joyent.manta.org.apache</shadedPattern>
+                            <shadedPattern>com.joyent.manta.shade.org.apache</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>com.fasterxml</pattern>
-                            <shadedPattern>com.joyent.manta.com.fasterxml</shadedPattern>
+                            <shadedPattern>com.joyent.manta.shade.com.fasterxml</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>io.mikael.urlbuilder</pattern>
-                            <shadedPattern>com.joyent.manta.io.mikael.urlbuilder</shadedPattern>
+                            <shadedPattern>com.joyent.manta.shade.io.mikael.urlbuilder</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>org.objenesis</pattern>
-                            <shadedPattern>com.joyent.manta.org.objenesis</shadedPattern>
+                            <shadedPattern>com.joyent.manta.shade.org.objenesis</shadedPattern>
                         </relocation>
                         <relocation>
                             <pattern>com.rits</pattern>
-                            <shadedPattern>com.joyent.manta.com.rits</shadedPattern>
+                            <shadedPattern>com.joyent.manta.shade.com.rits</shadedPattern>
                         </relocation>
                     </relocations>
                     <filters>
