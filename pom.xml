@@ -473,7 +473,7 @@
                         <id>integration-test-report</id>
                         <phase>integration-test</phase>
                         <goals>
-                            <goal>report</goal>
+                            <goal>report-integration</goal>
                         </goals>
                         <configuration>
                             <dataFileIncludes>**/jacoco-it.exec</dataFileIncludes>
