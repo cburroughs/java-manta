@@ -115,6 +115,27 @@
     <build>
         <plugins>
             <plugin>
+                <groupId>org.commonjava.maven.plugins</groupId>
+                <artifactId>directory-maven-plugin</artifactId>
+                <version>0.1</version>
+                <executions>
+                    <execution>
+                        <id>directories</id>
+                        <goals>
+                            <goal>directory-of</goal>
+                        </goals>
+                        <phase>initialize</phase>
+                        <configuration>
+                            <property>multi.module.root</property>
+                            <project>
+                                <groupId>com.joyent.manta</groupId>
+                                <artifactId>java-manta</artifactId>
+                            </project>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
                 <version>3.0.0</version>
                 <executions>
@@ -169,7 +190,7 @@
                             <outputDirectory>src/shade-workaround</outputDirectory>
                             <resources>
                                 <resource>
-                                    <directory>/home/jcsb/src/manta/java-manta/java-manta-client/src/main/java</directory>
+                                    <directory>${multi.module.root}/java-manta-client/src/main/java</directory>
                                 </resource>
                             </resources>
                         </configuration>
