@@ -117,10 +117,10 @@
             <plugin>
                 <groupId>org.commonjava.maven.plugins</groupId>
                 <artifactId>directory-maven-plugin</artifactId>
-                <version>0.1</version>
+                <version>${maven-directory-maven-plugin.version}</version>
                 <executions>
                     <execution>
-                        <id>directories</id>
+                        <id>directory-of-property</id>
                         <goals>
                             <goal>directory-of</goal>
                         </goals>
@@ -137,10 +137,10 @@
             </plugin>
             <plugin>
                 <artifactId>maven-clean-plugin</artifactId>
-                <version>3.0.0</version>
+                <!-- <version>3.0.0</version> -->
                 <executions>
                     <execution>
-                        <id>auto-clean</id>
+                        <id>clean-shade-workaround-src</id>
                         <phase>initialize</phase>
                         <goals>
                             <goal>clean</goal>
@@ -159,10 +159,10 @@
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
                 <artifactId>build-helper-maven-plugin</artifactId>
-                <version>3.0.0</version>
+                <version>${maven-build-helper-maven-plugin.version}</version>
                 <executions>
                     <execution>
-                        <id>add-source</id>
+                        <id>add-shade-workaround-source</id>
                         <phase>generate-sources</phase>
                         <goals>
                             <goal>add-source</goal>
@@ -177,11 +177,10 @@
             </plugin>
             <plugin>
                 <artifactId>maven-resources-plugin</artifactId>
-                <version>3.0.2</version>
+                <version>${maven-maven-resources-plugin.version}</version>
                 <executions>
                     <execution>
-                        <id>hack-copy</id>
-                        <!-- here the phase you need -->
+                        <id>copy-shade-workaround-src</id>
                         <phase>pre-integration-test</phase>
                         <goals>
                             <goal>copy-resources</goal>
@@ -201,7 +200,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-dependency-plugin</artifactId>
-                <version>3.0.1</version>
+                <version>${maven-build-helper-maven-plugin.version}</version>
                 <executions>
                     <execution>
                         <id>unpack-relocated-classes</id>

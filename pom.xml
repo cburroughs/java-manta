@@ -136,6 +136,10 @@
         <maven-exec-plugin.version>1.4.0</maven-exec-plugin.version>
         <maven-jacoco-plugin.version>0.7.9</maven-jacoco-plugin.version>
         <maven-project-info-reports-plugin.version>2.9</maven-project-info-reports-plugin.version>
+        <maven-directory-maven-plugin.version>0.2</maven-directory-maven-plugin.version>
+        <maven-build-helper-maven-plugin.version>3.0.0</maven-build-helper-maven-plugin.version>
+        <maven-maven-resources-plugin.version>3.0.2</maven-maven-resources-plugin.version>
+        <maven-build-helper-maven-plugin.version>3.0.0</maven-build-helper-maven-plugin.version>
 
         <!-- Maven plugin dependency versions -->
         <maven-plexus-compiler-javac-errorprone.version>2.8.2</maven-plexus-compiler-javac-errorprone.version>
@@ -480,14 +484,6 @@
                             <outputDirectory>${project.reporting.outputDirectory}/jacoco-it</outputDirectory>
                         </configuration>
                     </execution>
-                    <!-- <execution> -->
-                    <!--     <id>report</id> -->
-                    <!--     <phase>prepare-package</phase> -->
-                    <!--     <goals> -->
-                    <!--         <goal>test</goal> -->
-                    <!--         <goal>report</goal> -->
-                    <!--     </goals> -->
-                    <!-- </execution> -->
                 </executions>
             </plugin>
         </plugins>
